@@ -1,7 +1,10 @@
 package studyplus_for_school
 
 import (
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHelloWorld(t *testing.T) {
@@ -18,14 +21,10 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func TestCreatePartner(t *testing.T) {
-	actual, err := CreatePartner()
-
-	if err != nil {
-		t.Fatalf("CreatePartner raised some error")
-	}
-
+	key := "STUDYPLUS_FOR_SCHOOL_SYNC_BASE_URL"
+	value := "https://fs-lms.studyplus.co.jp"
+	os.Setenv(key, value)
+	actual := CreatePartner()
 	want := "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/partners"
-	if want != actual {
-		t.Fatalf("expected %s but got %s", want, actual)
-	}
+	assert.Equal(t, want, actual)
 }
