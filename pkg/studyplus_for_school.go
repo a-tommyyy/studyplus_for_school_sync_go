@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"path"
 	"time"
 )
 
@@ -21,12 +20,14 @@ type Partner struct {
 	startedOn   time.Time
 }
 
-func CreatePartner() (string, error) {
-	baseUrl, err := url.Parse(os.Getenv("STUDYPLUS_FORSCHOOL_SYNC_BASE_URL"))
-	fmt.Printf("baseurl: %s", baseUrl.Path)
+func CreatePartner() string {
+	baseUrl, err := url.Parse(os.Getenv("STUDYPLUS_FOR_SCHOOL_SYNC_BASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	return path.Join(baseUrl.Path, "/learning_material_supplier_api/v1/partners"), nil
+	url, err := baseUrl.Parse("learning_material_supplier_api/v1/partners")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return url.String()
 }
