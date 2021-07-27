@@ -5,8 +5,8 @@ import (
 )
 
 type Student struct {
-	CustomerUid   string `json:"customer_uid"`
 	PublicId      string `json:"public_id"`
+	CustomerUid   string `json:"customer_uid,omitempty"`
 	FirstName     string `json:"first_name"`
 	LastName      string `json:"last_name"`
 	FirstNameKana string `json:"first_name_kana"`
