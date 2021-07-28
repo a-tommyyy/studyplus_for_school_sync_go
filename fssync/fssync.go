@@ -12,24 +12,32 @@ import (
 	"path"
 )
 
+type BaseURL string
+
 const (
-	BaseURLProduction  = "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1"
-	BaseURLSandbox     = "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1"
-	BaseURLDevelopment = "https://fs-lms.studyplus.co.jp.cage.boron.studylog.jp/learning_material_supplier_api/v1"
+	BaseURLProduction  BaseURL = "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1"
+	BaseURLSandbox             = "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1"
+	BaseURLDevelopment         = "https://fs-lms.studyplus.co.jp.cage.boron.studylog.jp/learning_material_supplier_api/v1"
 )
+
+func (v BaseURL) String() string {
+	return string(v)
+}
 
 type Service struct {
 	client           *http.Client
-	BaseURL          string
+	BaseURL          BaseURL
 	LearningMaterial *LearningMaterialService
+	Partner          *PartnerService
 }
 
-func NewService(client *http.Client, baseURL string) (*Service, error) {
+func NewService(client *http.Client, baseURL BaseURL) (*Service, error) {
 	if client == nil {
 		return nil, errors.New("client is nil")
 	}
 	s := &Service{client: client, BaseURL: baseURL}
 	s.LearningMaterial = NewLearningMaterialService(s)
+	s.Partner = NewPartnerService(s)
 	return s, nil
 }
 
@@ -63,7 +71,7 @@ func encodeJson(v interface{}) (io.Reader, error) {
 }
 
 func buildUrl(s *Service, p string) string {
-	url, err := url.Parse(s.BaseURL)
+	url, err := url.Parse(s.BaseURL.String())
 	if err != nil {
 		log.Fatal(err)
 	}
