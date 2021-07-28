@@ -17,27 +17,22 @@ type LearningMaterialService struct {
 	s *Service
 }
 
-func NewLearningMaterialService(s *Service) *LearningMaterialService {
-	return &LearningMaterialService{s}
-}
-
 type LearningMaterialCreateCall struct {
 	s                *Service
 	learningMaterial *LearningMaterial
 }
 
-func (l *LearningMaterialService) Create(learningMaterial *LearningMaterial) *LearningMaterialCreateCall {
-	c := LearningMaterialCreateCall{s: l.s}
-	learningMaterial.PublicId = ""
-	learningMaterial.CustmerUid = ""
+func NewLearningMaterialService(s *Service) *LearningMaterialService {
+	return &LearningMaterialService{s}
+}
+
+func (r *LearningMaterialService) Create(learningMaterial *LearningMaterial) *LearningMaterialCreateCall {
+	c := LearningMaterialCreateCall{s: r.s}
 	c.learningMaterial = learningMaterial
 	return &c
 }
 
 func (c *LearningMaterialCreateCall) Do() (*LearningMaterial, error) {
-	if c.learningMaterial.PublicId != "" || c.learningMaterial.CustmerUid != "" {
-		return c.learningMaterial, nil
-	}
 	body, err := encodeJson(c.learningMaterial)
 	if err != nil {
 		return nil, err
