@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"net/url"
 	"testing"
 
@@ -9,49 +8,30 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func TestNewAuthorization(t *testing.T) {
-	app := mockApplication()
-	actual := NewAuthorization(app)
-	want := Authorization{
-		Config: &oauth2.Config{
-			ClientID:     app.ClientID,
-			ClientSecret: app.ClientSecret,
-			Scopes:       []string{"learning_material_supplier"},
-			RedirectURL:  app.RedirectURL,
-			Endpoint: oauth2.Endpoint{
-				TokenURL: app.TokenURL,
-				AuthURL:  app.AuthURL,
-			},
-		},
-		Client: nil,
-		ctx:    context.Background(),
-	}
-
-	assert.EqualValues(t, want, actual)
-}
-
 func TestAuthorizeURL(t *testing.T) {
-	app := mockApplication()
-	auth := NewAuthorization(app)
-	authURL, _ := url.Parse(auth.AuthorizeURL())
+	cnf := newMockConfig()
+	authURL, _ := url.Parse(AuthorizeURL(cnf))
 	actualQuery := authURL.Query()
 	wantQuery := url.Values{
-		"client_id":     []string{app.ClientID},
+		"client_id":     []string{cnf.ClientID},
 		"response_type": []string{"code"},
-		"redirect_uri":  []string{app.RedirectURL},
-		"scope":         []string{"learning_material_supplier"},
+		"redirect_uri":  []string{cnf.RedirectURL},
+		"scope":         cnf.Scopes,
 		"state":         []string{"state"},
 		"access_type":   []string{"offline"},
 	}
 	assert.EqualValues(t, wantQuery, actualQuery)
 }
 
-func mockApplication() *Application {
-	return &Application{
+func newMockConfig() *oauth2.Config {
+	return &oauth2.Config{
 		ClientID:     "CLIENT_ID",
 		ClientSecret: "CLIENT_SECRET",
 		RedirectURL:  "REDIRECT_URL",
-		TokenURL:     "https://example.com/oauth/token",
-		AuthURL:      "https://example.com/oauth/authorize",
+		Scopes:       []string{"learning_material_supplier"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://example.com/authorize",
+			TokenURL: "https://example.com/token",
+		},
 	}
 }

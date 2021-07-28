@@ -1,8 +1,6 @@
-package student
+package fssync
 
-import (
-	"strings"
-)
+import "strings"
 
 type Student struct {
 	PublicId      string `json:"public_id"`

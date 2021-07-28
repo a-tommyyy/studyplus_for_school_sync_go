@@ -1,10 +1,7 @@
-package study_record
+package fssync
 
 import (
 	"time"
-
-	"github.com/atomiyama/studyplus_for_school_sync_go/pkg/resource/learning_material"
-	"github.com/atomiyama/studyplus_for_school_sync_go/pkg/resource/student"
 )
 
 type StudyRecord struct {
@@ -19,6 +16,6 @@ type StudyRecord struct {
 	StudentPublicId             string    `json:"student_public_id,omitemtpy"`
 	LearningMaterialCustomerUid string    `json:"learning_material_customer_uid,omitemtpy"`
 	StudentCustomerUid          string    `json:"student_customer_uid,omitemtpy"`
-	LearningMaterial            learning_material.LearningMaterial
-	Student                     student.Student
+	LearningMaterial            LearningMaterial
+	Student                     Student
 }

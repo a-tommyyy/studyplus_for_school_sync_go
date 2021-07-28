@@ -1,4 +1,4 @@
-package partner
+package fssync
 
 type Partner struct {
 	PublicId    string `json:"public_id"`
