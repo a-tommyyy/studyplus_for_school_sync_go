@@ -11,21 +11,22 @@ type Env string
 const (
 	EnvProduction  Env = "production"
 	EnvDevelopment     = "development"
+	EnvSandbox         = "sandbox"
 )
 
-func EndpointFromEnv(env Env) (*oauth2.Endpoint, error) {
+func EndpointFromEnv(target *oauth2.Endpoint, env Env) error {
 	switch env {
 	case EnvProduction:
-		return &oauth2.Endpoint{
-			AuthURL:  "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/authorize",
-			TokenURL: "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/token",
-		}, nil
+		target.AuthURL = "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/authorize"
+		target.TokenURL = "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/token"
 	case EnvDevelopment:
-		return &oauth2.Endpoint{
-			AuthURL:  "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/authorize",
-			TokenURL: "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/token",
-		}, nil
+		target.AuthURL = "https://fs-lms.studyplus.co.jp.cage.boron.studylog.jp/learning_material_supplier_api/v1/oauth/authorize"
+		target.TokenURL = "https://fs-lms.studyplus.co.jp.cage.boron.studylog.jp/learning_material_supplier_api/v1/oauth/token"
+	case EnvSandbox:
+		target.AuthURL = "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/authorize"
+		target.TokenURL = "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1/oauth/token"
 	default:
-		return nil, fmt.Errorf("Invalid Env")
+		return fmt.Errorf("Invalid Env")
 	}
+	return nil
 }

@@ -3,24 +3,34 @@ package fssync
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"path"
+)
+
+const (
+	BaseURLProduction  = "https://fs-lms.studyplus.co.jp/learning_material_supplier_api/v1"
+	BaseURLSandbox     = "https://sandbox.fs-lms.studyplus.co.jp/learning_material_supplier_api/v1"
+	BaseURLDevelopment = "https://fs-lms.studyplus.co.jp.cage.boron.studylog.jp/learning_material_supplier_api/v1"
 )
 
 type Service struct {
-	Client  *http.Client
-	BaseURL *url.URL
+	client           *http.Client
+	BaseURL          string
+	LearningMaterial *LearningMaterialService
 }
 
-func NewService(client *http.Client, base string) *Service {
-	baseUrl, err := url.Parse(base)
-	if err != nil {
-		log.Fatal(err)
+func NewService(client *http.Client, baseURL string) (*Service, error) {
+	if client == nil {
+		return nil, errors.New("client is nil")
 	}
-	return &Service{client, baseUrl}
+	s := &Service{client: client, BaseURL: baseURL}
+	s.LearningMaterial = NewLearningMaterialService(s)
+	return s, nil
 }
 
 func request(s *Service, method string, path string, body io.Reader) (*http.Response, error) {
@@ -29,7 +39,8 @@ func request(s *Service, method string, path string, body io.Reader) (*http.Resp
 	if err != nil {
 		return nil, err
 	}
-	return s.Client.Do(req)
+	req.Header.Add("Content-Type", "application/json")
+	return s.client.Do(req)
 }
 
 type ServerResponse struct {
@@ -44,25 +55,18 @@ func checkResponse(resp *http.Response) error {
 }
 
 func encodeJson(v interface{}) (io.Reader, error) {
-	buf := new(bytes.Buffer)
-	err := json.NewDecoder(buf).Decode(v)
+	bodyBytes, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
-	return buf, nil
-}
-
-func decodeJson(target interface{}, res *http.Response) error {
-	if res.StatusCode != http.StatusNoContent {
-		return nil
-	}
-	return json.NewDecoder(res.Body).Decode(target)
+	return bytes.NewBuffer(bodyBytes), nil
 }
 
 func buildUrl(s *Service, p string) string {
-	url, err := s.BaseURL.Parse(p)
+	url, err := url.Parse(s.BaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
+	url.Path = path.Join(url.Path, p)
 	return url.String()
 }
