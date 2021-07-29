@@ -47,7 +47,7 @@ func request(s *Service, method string, path string, body io.Reader) (*http.Resp
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
 	return s.client.Do(req)
 }
 
