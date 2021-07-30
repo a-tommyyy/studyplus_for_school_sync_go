@@ -1,6 +1,7 @@
 package fssync
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -16,6 +17,46 @@ type StudyRecord struct {
 	StudentPublicId             string    `json:"student_public_id,omitemtpy"`
 	LearningMaterialCustomerUid string    `json:"learning_material_customer_uid,omitemtpy"`
 	StudentCustomerUid          string    `json:"student_customer_uid,omitemtpy"`
-	LearningMaterial            LearningMaterial
-	Student                     Student
+	ServerResponse              `json:"-"`
+}
+
+type StudyRecordService struct {
+	s *Service
+}
+
+type StudyRecordCreateCall struct {
+	s           *Service
+	studyRecord *StudyRecord
+}
+
+type StudentOptions interface {
+	Get() (key, value string)
+}
+
+func NewStudyRecordService(s *Service) *StudyRecordService {
+	return &StudyRecordService{s: s}
+}
+
+func (r *StudyRecordService) Create(studyRecord *StudyRecord) *StudyRecordCreateCall {
+	c := &StudyRecordCreateCall{s: r.s}
+	c.studyRecord = studyRecord
+	return c
+}
+
+func (c *StudyRecordCreateCall) Do() (*StudyRecord, error) {
+	body, err := encodeJson(c.studyRecord)
+	if err != nil {
+		return nil, err
+	}
+	res, err := request(c.s, "POST", "study_records", body)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	c.studyRecord.ServerResponse = ServerResponse{HTTPStatusCode: res.StatusCode}
+	if err := checkResponse(res); err != nil {
+		return nil, err
+	}
+	json.NewDecoder(res.Body).Decode(c.studyRecord)
+	return c.studyRecord, nil
 }

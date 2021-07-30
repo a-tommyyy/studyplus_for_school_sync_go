@@ -29,6 +29,7 @@ type Service struct {
 	BaseURL          BaseURL
 	LearningMaterial *LearningMaterialService
 	Partner          *PartnerService
+	StudyRecord      *StudyRecordService
 }
 
 func NewService(client *http.Client, baseURL BaseURL) (*Service, error) {
@@ -38,6 +39,7 @@ func NewService(client *http.Client, baseURL BaseURL) (*Service, error) {
 	s := &Service{client: client, BaseURL: baseURL}
 	s.LearningMaterial = NewLearningMaterialService(s)
 	s.Partner = NewPartnerService(s)
+	s.StudyRecord = NewStudyRecordService(s)
 	return s, nil
 }
 

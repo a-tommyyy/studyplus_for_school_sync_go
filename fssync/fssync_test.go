@@ -1,7 +1,6 @@
 package fssync
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +19,7 @@ func TestNewService(t *testing.T) {
 		s, err := NewService(client, BaseURLDevelopment)
 		assert.NoError(t, err)
 		assert.Equal(t, client, s.client)
-		assert.Equal(t, BaseURLDevelopment, s.BaseURL)
+		assert.EqualValues(t, BaseURLDevelopment, s.BaseURL)
 	})
 }
 
@@ -29,7 +28,8 @@ type RequestAssertion struct {
 	description string
 
 	// Mock response file path
-	mockResponseBodyFile string
+	mockStatusCode   int
+	mockResponseBody []byte
 
 	// Expected request parameters
 	expectedMethod      string
@@ -50,11 +50,10 @@ func setupServer(t *testing.T, a *RequestAssertion) (*Service, func()) {
 				assert.Equal(t, v, r.Header[k])
 			}
 		}
-		body, err := ioutil.ReadFile(a.mockResponseBodyFile)
-		if err != nil {
-			t.Fatalf("Failed to read mock response body file %s: %s\n", a.mockResponseBodyFile, err.Error())
+		if a.mockStatusCode != 0 {
+			rw.WriteHeader(a.mockStatusCode)
 		}
-		rw.Write(body)
+		rw.Write(a.mockResponseBody)
 	}))
 	s, err := NewService(server.Client(), BaseURL(server.URL))
 	if err != nil {

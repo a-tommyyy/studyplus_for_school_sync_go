@@ -12,7 +12,8 @@ type Partner struct {
 }
 
 type PartnerService struct {
-	s *Service
+	s       *Service
+	Student *StudentService
 }
 
 type PartnerCreateCall struct {
@@ -21,7 +22,9 @@ type PartnerCreateCall struct {
 }
 
 func NewPartnerService(s *Service) *PartnerService {
-	return &PartnerService{s}
+	p := &PartnerService{s: s}
+	p.Student = NewStudentService(s)
+	return p
 }
 
 func (r *PartnerService) Create(partner *Partner) *PartnerCreateCall {
