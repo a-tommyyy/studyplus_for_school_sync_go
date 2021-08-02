@@ -6,14 +6,14 @@ import (
 	"log"
 	"os"
 
-	"github.com/atomiyama/studyplus_for_school_sync_go/auth"
-	"github.com/atomiyama/studyplus_for_school_sync_go/fssync"
+	. "github.com/atomiyama/studyplus_for_school_sync_go/auth"
+	. "github.com/atomiyama/studyplus_for_school_sync_go/fssync"
 	"golang.org/x/oauth2"
 )
 
 func main() {
 	var endpoint oauth2.Endpoint
-	auth.EndpointFromEnv(&endpoint, auth.EnvDevelopment)
+	EndpointFromEnv(&endpoint, EnvDevelopment)
 	cnf := &oauth2.Config{
 		ClientID:     os.Getenv("CLIENT_ID"),
 		ClientSecret: os.Getenv("CLIENT_SECRET"),
@@ -21,26 +21,22 @@ func main() {
 		Scopes:       []string{"learning_material_supplier"},
 		Endpoint:     endpoint,
 	}
-	url := auth.AuthorizeURL(cnf)
-	fmt.Printf("Visit the URL:\n%v\n", url)
-	fmt.Printf("Enter AuthCode>>")
-
-	var code string
-	if _, err := fmt.Scan(&code); err != nil {
-		log.Fatal(err)
-	}
-
+	store := &FileTokenStore{Path: "credentials.json"}
+	authorization := NewAuthorization(cnf, store)
 	ctx := context.Background()
-	client, err := auth.GetClientFromCode(ctx, cnf, code)
+	client, err := authorization.Client(ctx)
 	if err != nil {
-		log.Fatal(err)
+		if err := authorization.AuthorizeCLI("state"); err != nil {
+			log.Fatal(err)
+		}
+		client, err = authorization.Client(ctx)
 	}
 
-	service, err := fssync.NewService(client, fssync.BaseURLDevelopment)
+	service, err := NewService(client, BaseURLDevelopment)
 	if err != nil {
 		log.Fatal(err)
 	}
-	lm := &fssync.LearningMaterial{
+	lm := &LearningMaterial{
 		Name:     "SAMPLE_NAME",
 		ImageUrl: "https://exmaple.com/image.jpeg",
 	}
@@ -48,6 +44,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("New LearningMaterial: %+v", lm)
+	fmt.Printf("New LearningMaterial: %+v\n", lm)
 }
