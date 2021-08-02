@@ -10,13 +10,25 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Authorization provides features that help the authorization process and managing tokens,
+// such as getting tokens from the data sources and persisting refreshed tokens.
+// Most users will use golang.org/x/oauth2 package.
 type Authorization struct {
 	Config       *oauth2.Config
-	tokenManager *TokenManager
+	tokenManager *tokenManager
+}
+
+// TokenStore is anything that can get token and store token, with any datasource. (e.g. cache, database)
+type TokenStore interface {
+	// Get returns the persisted token from some data source.
+	Get() (*oauth2.Token, error)
+
+	// Store persists the token into some data source.
+	Save(*oauth2.Token) error
 }
 
 func NewAuthorization(cnf *oauth2.Config, ts TokenStore) *Authorization {
-	tokenManager := NewTokenManager(ts)
+	tokenManager := newTokenManager(ts)
 	return &Authorization{Config: cnf, tokenManager: tokenManager}
 }
 
@@ -63,18 +75,17 @@ func (a *Authorization) Client(ctx context.Context) (*http.Client, error) {
 	return oauth2.NewClient(ctx, r), nil
 }
 
-// TokenSource
-type TokenManager struct {
+type tokenManager struct {
 	store TokenStore
 	mut   sync.Mutex
 	src   oauth2.TokenSource
 }
 
-func NewTokenManager(store TokenStore) *TokenManager {
-	return &TokenManager{store: store}
+func newTokenManager(store TokenStore) *tokenManager {
+	return &tokenManager{store: store}
 }
 
-func (s *TokenManager) Token() (*oauth2.Token, error) {
+func (s *tokenManager) Token() (*oauth2.Token, error) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	token, err := s.store.Get()
@@ -90,18 +101,10 @@ func (s *TokenManager) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-func (s *TokenManager) Get() (*oauth2.Token, error) {
+func (s *tokenManager) Get() (*oauth2.Token, error) {
 	return s.store.Get()
 }
 
-func (s *TokenManager) Save(t *oauth2.Token) error {
+func (s *tokenManager) Save(t *oauth2.Token) error {
 	return s.store.Save(t)
-}
-
-type TokenStore interface {
-	// Get returns the persisted token from some data source.(e.g. cache, database)
-	Get() (*oauth2.Token, error)
-
-	// Store persists the token into some data source.
-	Save(*oauth2.Token) error
 }
