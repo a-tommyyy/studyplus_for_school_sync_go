@@ -4,23 +4,33 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/oauth2"
 )
 
-func TestAuthorizeURL(t *testing.T) {
+func TestAuthorization_AuthCodeURL(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	cnf := newMockConfig()
-	authURL, _ := url.Parse(AuthorizeURL(cnf))
+	ts := NewMockTokenStore(ctrl)
+	authorization := NewAuthorization(cnf, ts)
+	state := "TestAuthorization_AuthCodeURL"
+	authURL, _ := url.Parse(authorization.AuthCodeURL(state))
 	actualQuery := authURL.Query()
 	wantQuery := url.Values{
 		"client_id":     []string{cnf.ClientID},
 		"response_type": []string{"code"},
 		"redirect_uri":  []string{cnf.RedirectURL},
 		"scope":         cnf.Scopes,
-		"state":         []string{"state"},
+		"state":         []string{state},
 		"access_type":   []string{"offline"},
 	}
-	assert.EqualValues(t, wantQuery, actualQuery)
+	assert.Equal(t, wantQuery, actualQuery)
+}
+
+func TestAuthorization_AuthorizeFromCode(t *testing.T) {
+	assert.Equal(t, true, false)
 }
 
 func newMockConfig() *oauth2.Config {
